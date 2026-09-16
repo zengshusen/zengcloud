@@ -1,0 +1,42 @@
+:root {
+  --zc-ink: #12201f;
+  --zc-brand: #0f3d3a;
+  --zc-accent: #1a7a6d;
+  --zc-mint: #5eead4;
+  --zc-sand: #f0e6d2;
+  --zc-mist: #e8f2ef;
+  --zc-panel: rgba(255, 252, 247, 0.88);
+  --zc-border: rgba(15, 61, 58, 0.12);
+  --zc-danger: #b42318;
+  --font-display: 'Sora', 'Segoe UI', sans-serif;
+  --font-body: 'Manrope', 'Segoe UI', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--zc-ink);
+  background: #f4f7f6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}

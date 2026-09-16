@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZengCloud · GitHub 上传面板</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Sora:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">No-Code Sync</p>
+        <h1>ZengCloud</h1>
+        <p class="tagline">把本地项目点几下同步到 GitHub，不用手写命令。</p>
+      </header>
+
+      <section class="card status-card">
+        <div class="card-head">
+          <h2>仓库状态</h2>
+          <button type="button" class="ghost" id="btn-refresh">刷新</button>
+        </div>
+        <dl class="meta" id="meta">
+          <div><dt>项目路径</dt><dd id="meta-root">—</dd></div>
+          <div><dt>是否已初始化</dt><dd id="meta-repo">—</dd></div>
+          <div><dt>当前分支</dt><dd id="meta-branch">—</dd></div>
+          <div><dt>远程 origin</dt><dd id="meta-remote">—</dd></div>
+        </dl>
+        <pre class="console" id="status-box">加载中…</pre>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>远程仓库</h2>
+        </div>
+        <label class="field">
+          <span>GitHub 地址</span>
+          <input
+            id="remote-url"
+            type="url"
+            placeholder="https://github.com/你的用户名/zengcloud.git"
+          />
+        </label>
+        <div class="actions">
+          <button type="button" class="btn" data-action="init">初始化仓库<br /><small>git init</small></button>
+          <button type="button" class="btn" data-action="set_remote">设置远程地址<br /><small>git remote add/set-url</small></button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>提交与推送</h2>
+        </div>
+        <label class="field">
+          <span>提交说明</span>
+          <input id="commit-msg" type="text" placeholder="例如：更新登录页与主布局" value="chore: sync project" />
+        </label>
+        <div class="actions grid">
+          <button type="button" class="btn" data-action="status">查看状态<br /><small>git status</small></button>
+          <button type="button" class="btn" data-action="add">添加全部文件<br /><small>git add -A</small></button>
+          <button type="button" class="btn" data-action="commit">提交代码<br /><small>git commit</small></button>
+          <button type="button" class="btn" data-action="push">推送到 GitHub<br /><small>git push -u origin</small></button>
+          <button type="button" class="btn" data-action="pull">拉取更新<br /><small>git pull</small></button>
+          <button type="button" class="btn" data-action="log">查看提交记录<br /><small>git log</small></button>
+        </div>
+        <button type="button" class="btn primary" id="btn-one-click">
+          一键上传到 GitHub
+          <small>init → remote → add → commit → push</small>
+        </button>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>执行输出</h2>
+          <button type="button" class="ghost" id="btn-clear">清空</button>
+        </div>
+        <pre class="console tall" id="log-box">等待操作…</pre>
+        <p class="tips">
+          提示：请先在 GitHub 网页新建空仓库，再把地址填到上面。`.env`、`.venv`、`node_modules` 已在忽略列表，不会上传。
+          首次推送若要求登录，请在本机 Git 凭据管理器完成 GitHub 授权。
+        </p>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
