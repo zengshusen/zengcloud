@@ -18,15 +18,28 @@
       <header class="hero">
         <p class="eyebrow">No-Code Sync</p>
         <h1>ZengCloud</h1>
-        <p class="tagline">把本地项目点几下同步到 GitHub，不用手写命令。</p>
+        <p class="tagline">最上方展示完整提交时间线；下方用按钮完成同步与分支操作。</p>
       </header>
 
-      <section class="card status-card">
+      <section class="card commit-timeline-card">
+        <div class="card-head">
+          <h2>提交历史时间线</h2>
+          <div class="head-actions">
+            <span class="badge" id="commit-count-badge">0 条</span>
+            <button type="button" class="ghost" id="btn-refresh-commits">刷新提交</button>
+          </div>
+        </div>
+        <ol class="commit-timeline" id="commit-timeline">
+          <li class="empty">加载中…</li>
+        </ol>
+      </section>
+
+      <section class="card">
         <div class="card-head">
           <h2>仓库状态</h2>
           <button type="button" class="ghost" id="btn-refresh">刷新</button>
         </div>
-        <dl class="meta" id="meta">
+        <dl class="meta">
           <div><dt>项目路径</dt><dd id="meta-root">—</dd></div>
           <div><dt>是否已初始化</dt><dd id="meta-repo">—</dd></div>
           <div><dt>当前分支</dt><dd id="meta-branch">—</dd></div>
@@ -36,57 +49,153 @@
       </section>
 
       <section class="card">
-        <div class="card-head">
-          <h2>远程仓库</h2>
+        <div class="card-head"><h2>参数区</h2></div>
+        <div class="fields">
+          <label class="field">
+            <span>GitHub 地址</span>
+            <input id="remote-url" type="url" placeholder="https://github.com/你的用户名/zengcloud.git" />
+          </label>
+          <label class="field">
+            <span>提交说明 / stash 说明</span>
+            <input id="commit-msg" type="text" value="chore: sync project" />
+          </label>
+          <label class="field">
+            <span>分支名（新建 / 切换 / 新名字）</span>
+            <input id="branch-name" type="text" placeholder="feature/login 或新分支名" />
+          </label>
+          <label class="field">
+            <span>旧分支名 / commit / 标签</span>
+            <input id="target-ref" type="text" placeholder="旧分支名，或 abc1234 / v1.0.0" />
+          </label>
+          <label class="field">
+            <span>Git 用户名</span>
+            <input id="user-name" type="text" placeholder="Your Name" />
+          </label>
+          <label class="field">
+            <span>Git 邮箱</span>
+            <input id="user-email" type="email" placeholder="you@example.com" />
+          </label>
         </div>
-        <label class="field">
-          <span>GitHub 地址</span>
-          <input
-            id="remote-url"
-            type="url"
-            placeholder="https://github.com/你的用户名/zengcloud.git"
-          />
-        </label>
-        <div class="actions">
-          <button type="button" class="btn" data-action="init">初始化仓库<br /><small>git init</small></button>
-          <button type="button" class="btn" data-action="set_remote">设置远程地址<br /><small>git remote add/set-url</small></button>
+      </section>
+
+      <section class="card branch-card">
+        <div class="card-head">
+          <h2>修改分支</h2>
+          <span class="badge">当前：<strong id="branch-current">—</strong></span>
+        </div>
+
+        <div class="mode-tabs" role="tablist">
+          <button type="button" class="mode-tab active" data-mode="existing" id="mode-existing">
+            选择已有分支
+          </button>
+          <button type="button" class="mode-tab" data-mode="create" id="mode-create">
+            新建分支
+          </button>
+        </div>
+
+        <div class="mode-panel" id="panel-existing">
+          <div class="branch-toolbar">
+            <label class="field grow">
+              <span>GitHub / 本地已有分支</span>
+              <select id="branch-select">
+                <option value="">加载中…</option>
+              </select>
+            </label>
+            <button type="button" class="btn compact refresh-branches" id="btn-refresh-branches">
+              刷新 GitHub 分支<br /><small>git fetch + 列表</small>
+            </button>
+          </div>
+          <p class="hint-line" id="branch-source-hint">选择分支后可切换、重命名或删除。</p>
+          <div class="actions grid-more">
+            <button type="button" class="btn compact" id="btn-use-existing">
+              切换到所选分支<br /><small>switch / track origin</small>
+            </button>
+            <button type="button" class="btn compact" id="btn-rename-to-selected" data-confirm="将当前分支重命名为所选名称？若所选已存在可能失败。">
+              当前分支改名为所选<br /><small>git branch -m</small>
+            </button>
+            <button type="button" class="btn compact" id="btn-delete-selected-local" data-confirm="确认删除所选本地分支？">
+              删除所选本地分支<br /><small>git branch -d/-D</small>
+            </button>
+            <button type="button" class="btn compact" id="btn-delete-selected-remote" data-confirm="确认删除所选远程分支？">
+              删除所选远程分支<br /><small>git push --delete</small>
+            </button>
+            <button type="button" class="btn compact" data-action="branch_push_set_upstream">
+              推送当前分支并设上游<br /><small>git push -u</small>
+            </button>
+            <button type="button" class="btn compact" data-action="branch_list">
+              查看本地分支详情<br /><small>git branch -vv</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="mode-panel hidden" id="panel-create">
+          <label class="field">
+            <span>新分支名称</span>
+            <input id="new-branch-name" type="text" placeholder="例如 feature/login" />
+          </label>
+          <label class="check-line">
+            <input type="checkbox" id="create-push-after" checked />
+            <span>创建后推送到 GitHub 并设置上游（push -u）</span>
+          </label>
+          <div class="actions grid-more">
+            <button type="button" class="btn compact primary-lite" id="btn-create-branch">
+              创建并切换到新分支<br /><small>git checkout -b</small>
+            </button>
+            <button
+              type="button"
+              class="btn compact"
+              data-action="branch_main"
+              data-confirm="将当前分支强制改名为 main？"
+            >
+              当前分支改为 main<br /><small>git branch -M main</small>
+            </button>
+          </div>
         </div>
       </section>
 
       <section class="card">
         <div class="card-head">
-          <h2>提交与推送</h2>
+          <h2>使用率 Top 6</h2>
+          <span class="badge">日常最高频</span>
         </div>
-        <label class="field">
-          <span>提交说明</span>
-          <input id="commit-msg" type="text" placeholder="例如：更新登录页与主布局" value="chore: sync project" />
-        </label>
-        <div class="actions grid">
-          <button type="button" class="btn" data-action="status">查看状态<br /><small>git status</small></button>
-          <button type="button" class="btn" data-action="add">添加全部文件<br /><small>git add -A</small></button>
-          <button type="button" class="btn" data-action="commit">提交代码<br /><small>git commit</small></button>
-          <button type="button" class="btn" data-action="push">推送到 GitHub<br /><small>git push -u origin</small></button>
-          <button type="button" class="btn" data-action="pull">拉取更新<br /><small>git pull</small></button>
-          <button type="button" class="btn" data-action="log">查看提交记录<br /><small>git log</small></button>
+        <div class="actions grid-6" id="top-actions"></div>
+        <div class="recipe-row">
+          <button type="button" class="btn primary" data-action="quick_sync">
+            日常一键同步
+            <small>add → commit → push</small>
+          </button>
+          <button type="button" class="btn primary alt" data-action="one_click" data-confirm="首次上传将执行 init → remote → add → commit → push，确认？">
+            首次一键上传
+            <small>init → remote → add → commit → push</small>
+          </button>
         </div>
-        <button type="button" class="btn primary" id="btn-one-click">
-          一键上传到 GitHub
-          <small>init → remote → add → commit → push</small>
-        </button>
       </section>
 
       <section class="card">
         <div class="card-head">
-          <h2>执行输出</h2>
-          <button type="button" class="ghost" id="btn-clear">清空</button>
+          <h2>更多命令</h2>
+          <button type="button" class="ghost" id="btn-expand-all">全部展开/折叠</button>
         </div>
+        <div id="more-groups" class="groups"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>操作历史（先后顺序）</h2>
+          <div class="head-actions">
+            <button type="button" class="ghost" id="btn-clear-history">清空历史</button>
+            <button type="button" class="ghost" id="btn-clear-log">清空输出</button>
+          </div>
+        </div>
+        <ol class="timeline" id="timeline"></ol>
         <pre class="console tall" id="log-box">等待操作…</pre>
         <p class="tips">
-          提示：请先在 GitHub 网页新建空仓库，再把地址填到上面。`.env`、`.venv`、`node_modules` 已在忽略列表，不会上传。
-          首次推送若要求登录，请在本机 Git 凭据管理器完成 GitHub 授权。
+          `.env` / `.venv` / `node_modules` 不会上传。危险操作（强制推送、清理未跟踪文件、硬还原）会二次确认。
+          点时间线里的「再执行」可按原参数重跑该命令。
         </p>
       </section>
     </main>
+    <script src="/static/commands.js"></script>
     <script src="/static/app.js"></script>
   </body>
 </html>
